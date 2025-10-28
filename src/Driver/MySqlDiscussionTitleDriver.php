@@ -1,44 +1,21 @@
 <?php
+
 namespace Aixueyuan\Search\Driver;
 
-//use Flarum\Post\Post;
-use Flarum\Discussion\Discussion;
+use Flarum\Discussion\Search\Fulltext\MySqlFulltextDriver;
 
-class MySqlDiscussionTitleDriver
+class MySqlDiscussionTitleDriver extends MySqlFulltextDriver
 {
     /**
-     * {@inheritdoc}
+     * 让 MATCH 同时作用在 segmented_title 与 title 上
      */
-    public function match($string)
+    protected array $columns = ['segmented_title', 'title'];
+
+    /**
+     * 去掉额外空白，避免 “武侠 is:solved” 这类串进 MATCH
+     */
+    protected function prepare(string $string): string
     {
-        $discussionIds = Discussion::where("is_approved", 1)
-            ->where("is_private", 0)
-            ->whereNull('hidden_at')
-            ->where('comment_count', '>', 0)
-            ->where('title', 'like', '%' . $string . '%')
-            ->limit(20)
-            ->pluck('id','first_post_id');
-
-        $relevantPostIds = [];
-
-        foreach ($discussionIds as $postId => $discussionId) {
-            $relevantPostIds[$discussionId][] = $postId;
-        }
-
-
-        /* $discussionIds = Post::where('type','=', 'comment')
-            ->where("is_approved", 1)
-            ->where("is_private", 0)
-            ->whereNull('hidden_at')
-            ->whereRaw('MATCH (`content`) AGAINST (? IN NATURAL LANGUAGE MODE)', [$string])
-            //->orderByRaw('MATCH (`content`) AGAINST (?) DESC', [$string])
-            ->limit(20)
-            ->pluck('discussion_id', 'id'); 
-
-        foreach ($discussionIds as $postId => $discussionId) {
-            $relevantPostIds[$discussionId][] = $postId;
-        } */
-
-        return $relevantPostIds;
+        return trim(preg_replace('/\s+/u', ' ', $string));
     }
 }

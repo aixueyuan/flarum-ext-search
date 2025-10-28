@@ -1,40 +1,42 @@
 <?php
+
 namespace Aixueyuan\Search\Gambit;
 
-use Flarum\Search\SearchState;
 use Aixueyuan\Search\Driver\MySqlDiscussionTitleDriver;
 use Flarum\Search\GambitInterface;
+use Flarum\Search\SearchState;
 
 class TitleGambit implements GambitInterface
 {
-    /**
-     * @var MySqlDiscussionTitleDriver
-     */
-    protected $titleGambit;
-
-    /**
-     * @param MySqlDiscussionTitleDriver $titleGambit
-     */
-    public function __construct(MySqlDiscussionTitleDriver $titleGambit)
+    public function __construct(protected MySqlDiscussionTitleDriver $driver)
     {
-        $this->titleGambit = $titleGambit;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function apply(SearchState $search, $bit)
     {
-        // Replace all non-word characters with spaces.
-        // We do this to prevent MySQL fulltext search boolean mode from taking
-        // effect: https://dev.mysql.com/doc/refman/5.7/en/fulltext-boolean.html
-        $bit = preg_replace('/[^\p{L}\p{N}_]+/u', ' ', $bit);
+        $bit = trim((string) $bit);
 
-        if (! isset($bit) || strlen($bit)<=3) return $search;
+        if ($bit === '') {
+            return;
+        }
 
-        $relevantPostIds = $this->titleGambit->match($bit);
-        $discussionIds = array_keys($relevantPostIds);
-        $search->getQuery()->whereIn('id', $discussionIds);
-        $search->setDefaultSort(['id' => $discussionIds]);
+        $result = $this->driver->match($bit);
+        $orderedIds = $result['orderedIds'];
+        $relevantPosts = $result['relevantPosts'];
+
+        if ($orderedIds === []) {
+            // 阻止 Flarum 回退到“最新帖子列表”
+            $search->getQuery()->whereRaw('1 = 0');
+            return;
+        }
+
+        $search->getQuery()->whereIn('discussions.id', $orderedIds);
+
+        $search->setRelevantPosts($relevantPosts);
+
+        $search->setDefaultSort(function ($query) use ($orderedIds) {
+            $ids = implode(',', array_map('intval', $orderedIds));
+            $query->orderByRaw("FIELD(discussions.id, {$ids})");
+        });
     }
 }
