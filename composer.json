@@ -1,0 +1,36 @@
+{
+    "name": "aixueyuan/flarum-ext-search",
+    "description": "Customized search extension for Flarum with Chinese Jieba tokenization.",
+    "keywords": ["search", "flarum", "jieba", "chinese"],
+    "type": "flarum-extension",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "aixueyuan",
+            "email": "your-email@example.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/aixueyuan/flarum-ext-search/issues",
+        "source": "https://github.com/aixueyuan/flarum-ext-search"
+    },
+    "require": {
+        "flarum/core": ">=1.0"
+    },
+    "extra": {
+        "flarum-extension": {
+            "title": "Aixueyuan Search (Chinese)",
+            "icon": {
+                "name": "fa fa-search",
+                "backgroundColor": "#ddd",
+                "color": "#333"
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Aixueyuan\\Search\\": "src/"
+        }
+    }
+}
