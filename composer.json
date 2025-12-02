@@ -1,6 +1,6 @@
 {
     "name": "aixueyuan/flarum-ext-search",
-    "description": "Skeleton extension placeholder for Flarum Chinese search.",
+    "description": "Chinese search.",
     "type": "flarum-extension",
     "license": "MIT",
     "require": {
@@ -13,7 +13,7 @@
     },
     "extra": {
         "flarum-extension": {
-            "title": "Aixueyuan Search (Skeleton)",
+            "title": "Chinese Search",
             "category": "other",
             "icon": {
                 "name": "fa fa-search",
